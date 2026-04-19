@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}账户设置 - 智能校园失物招领系统{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#auth-form" title="账户设置">
+        <span class="sidebar-icon">设</span>
+        <span class="sidebar-text">账户设置</span>
+      </a>
+      <a class="sidebar-link" href="#auth-tips" title="说明">
+        <span class="sidebar-icon">说</span>
+        <span class="sidebar-text">说明</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<div class="page-grid auth-layout">
+  <section class="panel auth-card" id="auth-form">
+    <span class="eyebrow">Account Center</span>
+    <h1 class="page-title">账户设置</h1>
+    <p class="section-subtitle">在这里维护当前账户的基础资料，后续可扩展更多设置项。</p>
+
+    <form method="post" class="form-layout">
+      {% csrf_token %}
+
+      <div class="form-grid">
+        <label class="field">
+          <span class="label">用户名</span>
+          <input type="text" value="{{ request.user.username }}" disabled />
+        </label>
+
+        <label class="field">
+          <span class="label">邮箱</span>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="field-errors">{{ form.email.errors }}</div>{% endif %}
+        </label>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert-box">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="row row-gap wrap">
+        <button class="btn" type="submit">保存设置</button>
+        <a class="btn btn-ghost" href="{% url 'home' %}">返回首页</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="stack">
+    <section class="panel panel-accent" id="auth-tips">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">说明</h2>
+          <p class="panel-subtitle">当前版本提供基础资料维护能力。</p>
+        </div>
+      </div>
+      <ul class="quick-list">
+        <li>用户名用于展示，当前版本暂不开放修改。</li>
+        <li>邮箱可作为后续通知、提醒和找回凭证的基础信息。</li>
+        <li>如需密码修改，可继续接入 Django 内置密码管理流程。</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

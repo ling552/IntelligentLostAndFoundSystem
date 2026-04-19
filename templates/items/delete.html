@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}删除信息 - {{ item.title }}{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#delete-warning" title="删除确认">
+        <span class="sidebar-icon">删</span>
+        <span class="sidebar-text">删除确认</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<section class="panel danger-panel" id="delete-warning">
+  <span class="eyebrow danger-text">Danger Zone</span>
+  <h1 class="page-title">确认删除这条信息？</h1>
+  <p class="section-subtitle">删除后将无法恢复，请再次确认当前操作是否必要。</p>
+
+  <div class="danger-box">
+    <strong>{{ item.title }}</strong>
+    <p class="muted">地点：{{ item.location }} ｜ 时间：{{ item.time|date:'Y-m-d H:i' }}</p>
+  </div>
+
+  <form method="post" class="row row-gap wrap">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">确认删除</button>
+    <a class="btn btn-ghost" href="{% url 'item_detail' item.pk %}">取消</a>
+  </form>
+</section>
+{% endblock %}

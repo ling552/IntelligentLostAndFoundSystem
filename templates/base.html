@@ -1,0 +1,208 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}智能校园失物招领系统{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+</head>
+<body>
+  <div class="page-backdrop"></div>
+
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="header-brand-group">
+        <button
+          class="sidebar-toggle"
+          type="button"
+          data-sidebar-toggle
+          aria-controls="app-sidebar"
+          aria-expanded="true"
+          aria-label="切换导航栏"
+          title="切换导航栏"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <a class="brand" href="{% url 'home' %}">
+          <span class="brand-mark">LF</span>
+          <span>
+            <strong class="brand-title">智能校园失物招领</strong>
+            <span class="brand-subtitle">Lost &amp; Found for Campus</span>
+          </span>
+        </a>
+      </div>
+
+      <div class="header-actions">
+        {% if user.is_authenticated %}
+          <a class="user-pill" href="{% url 'profile' %}">{{ user.username }}</a>
+          <a class="btn btn-ghost" href="{% url 'logout' %}">退出登录</a>
+        {% else %}
+          <a class="btn btn-ghost" href="{% url 'login' %}">登录</a>
+          <a class="btn" href="{% url 'register' %}">注册</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-overlay" data-sidebar-overlay></div>
+
+  <main class="app-main">
+    <div class="container app-shell">
+      <aside class="sidebar" id="app-sidebar">
+        {% with current=request.resolver_match.url_name %}
+          <div class="sidebar-panel">
+            <div class="sidebar-head">
+              <div>
+                <div class="sidebar-title">站点导航</div>
+                <div class="sidebar-subtitle">全站入口与快捷操作</div>
+              </div>
+            </div>
+
+            <div class="sidebar-section sidebar-actions-section">
+              <div class="sidebar-section-title">主要栏目</div>
+              <nav class="sidebar-nav">
+                <a
+                  class="sidebar-link{% if current == 'home' and request.GET.type != 'lost' and request.GET.type != 'found' %} is-active{% endif %}"
+                  href="{% url 'home' %}"
+                  title="平台首页"
+                >
+                  <span class="sidebar-icon">首</span>
+                  <span class="sidebar-text">平台首页</span>
+                </a>
+                <a
+                  class="sidebar-link{% if current == 'home' and request.GET.type == 'lost' %} is-active{% endif %}"
+                  href="{% url 'home' %}?type=lost"
+                  title="浏览失物"
+                >
+                  <span class="sidebar-icon">失</span>
+                  <span class="sidebar-text">浏览失物</span>
+                </a>
+                <a
+                  class="sidebar-link{% if current == 'home' and request.GET.type == 'found' %} is-active{% endif %}"
+                  href="{% url 'home' %}?type=found"
+                  title="浏览招领"
+                >
+                  <span class="sidebar-icon">招</span>
+                  <span class="sidebar-text">浏览招领</span>
+                </a>
+                <a
+                  class="sidebar-link{% if current == 'item_create' and request.GET.type != 'found' %} is-active{% endif %}"
+                  href="{% url 'item_create' %}?type=lost"
+                  title="发布失物"
+                >
+                  <span class="sidebar-icon">发</span>
+                  <span class="sidebar-text">发布失物</span>
+                </a>
+                <a
+                  class="sidebar-link{% if current == 'item_create' and request.GET.type == 'found' %} is-active{% endif %}"
+                  href="{% url 'item_create' %}?type=found"
+                  title="发布招领"
+                >
+                  <span class="sidebar-icon">领</span>
+                  <span class="sidebar-text">发布招领</span>
+                </a>
+                {% if user.is_authenticated %}
+                  <a
+                    class="sidebar-link{% if current == 'my_items' %} is-active{% endif %}"
+                    href="{% url 'my_items' %}"
+                    title="我的发布"
+                  >
+                    <span class="sidebar-icon">我</span>
+                    <span class="sidebar-text">我的发布</span>
+                  </a>
+                  <a
+                    class="sidebar-link{% if current == 'profile' %} is-active{% endif %}"
+                    href="{% url 'profile' %}"
+                    title="账户设置"
+                  >
+                    <span class="sidebar-icon">设</span>
+                    <span class="sidebar-text">账户设置</span>
+                  </a>
+                {% else %}
+                  <a
+                    class="sidebar-link{% if current == 'login' %} is-active{% endif %}"
+                    href="{% url 'login' %}"
+                    title="登录账号"
+                  >
+                    <span class="sidebar-icon">登</span>
+                    <span class="sidebar-text">登录账号</span>
+                  </a>
+                  <a
+                    class="sidebar-link{% if current == 'register' %} is-active{% endif %}"
+                    href="{% url 'register' %}"
+                    title="注册账号"
+                  >
+                    <span class="sidebar-icon">注</span>
+                    <span class="sidebar-text">注册账号</span>
+                  </a>
+                {% endif %}
+                {% if user.is_staff %}
+                  <a
+                    class="sidebar-link{% if current == 'admin_dashboard' %} is-active{% endif %}"
+                    href="{% url 'admin_dashboard' %}"
+                    title="后台统计"
+                  >
+                    <span class="sidebar-icon">统</span>
+                    <span class="sidebar-text">后台统计</span>
+                  </a>
+                {% endif %}
+              </nav>
+            </div>
+
+            <div class="sidebar-section">
+              <div class="sidebar-section-title">快速操作</div>
+              <div class="sidebar-actions">
+                <a class="action-chip" href="{% url 'item_create' %}?type=lost">立即发布失物</a>
+                <a class="action-chip" href="{% url 'item_create' %}?type=found">立即发布招领</a>
+                <a class="action-chip" href="{% url 'home' %}?sort=time">按物品时间查看</a>
+                {% if user.is_staff %}
+                  <a class="action-chip" href="/admin/">进入后台管理</a>
+                {% endif %}
+              </div>
+            </div>
+
+            {% block sidebar_quick_links %}{% endblock %}
+          </div>
+        {% endwith %}
+      </aside>
+
+      <div class="shell-main" id="main-content">
+        {% if messages %}
+          <div class="toast-stack">
+            {% for message in messages %}
+              <div class="toast toast-{{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+        <footer class="app-footer">
+          <div class="footer-inner">
+            <div>
+              <div class="footer-title">智能校园失物招领系统</div>
+              <div class="muted">面向校园场景的失物发布、招领管理与智能匹配平台。</div>
+            </div>
+            <div class="footer-links">
+              <a href="{% url 'home' %}">浏览信息</a>
+              <a href="{% url 'item_create' %}?type=lost">发布失物</a>
+              <a href="{% url 'item_create' %}?type=found">发布招领</a>
+              {% if user.is_authenticated %}
+                <a href="{% url 'my_items' %}">我的发布</a>
+              {% else %}
+                <a href="{% url 'login' %}">登录账号</a>
+              {% endif %}
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </main>
+
+  <script src="{% static 'js/app.js' %}" defer></script>
+</body>
+</html>

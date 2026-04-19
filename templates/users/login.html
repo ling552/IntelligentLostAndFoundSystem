@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}登录 - 智能校园失物招领系统{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#auth-form" title="登录表单">
+        <span class="sidebar-icon">登</span>
+        <span class="sidebar-text">登录表单</span>
+      </a>
+      <a class="sidebar-link" href="#auth-tips" title="使用说明">
+        <span class="sidebar-icon">提</span>
+        <span class="sidebar-text">使用说明</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<div class="page-grid auth-layout">
+  <section class="panel auth-card" id="auth-form">
+    <span class="eyebrow">Welcome Back</span>
+    <h1 class="page-title">登录账号</h1>
+    <p class="section-subtitle">登录后即可发布信息、查看匹配推荐，并管理自己的记录。</p>
+
+    <form method="post" class="form-layout">
+      {% csrf_token %}
+
+      <label class="field">
+        <span class="label">用户名</span>
+        {{ form.username }}
+      </label>
+
+      <label class="field">
+        <span class="label">密码</span>
+        {{ form.password }}
+      </label>
+
+      {% if form.non_field_errors %}
+        <div class="alert-box">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="row row-gap wrap">
+        <button class="btn" type="submit">登录</button>
+        <a class="btn btn-ghost" href="{% url 'register' %}">去注册</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="stack">
+    <section class="panel panel-accent" id="auth-tips">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">登录后你可以</h2>
+          <p class="panel-subtitle">把遗失与认领流程收拢到一个入口。</p>
+        </div>
+      </div>
+      <ul class="quick-list">
+        <li>发布失物或招领信息，并维护状态。</li>
+        <li>查看系统自动推荐的可能匹配项。</li>
+        <li>在“我的发布”中统一编辑和删除记录。</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

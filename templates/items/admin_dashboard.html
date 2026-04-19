@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}后台统计 - 智能校园失物招领系统{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#admin-overview" title="统计概览">
+        <span class="sidebar-icon">概</span>
+        <span class="sidebar-text">统计概览</span>
+      </a>
+      <a class="sidebar-link" href="#admin-category" title="分类分布">
+        <span class="sidebar-icon">分</span>
+        <span class="sidebar-text">分类分布</span>
+      </a>
+      <a class="sidebar-link" href="#admin-recent" title="最近发布">
+        <span class="sidebar-icon">近</span>
+        <span class="sidebar-text">最近发布</span>
+      </a>
+      <a class="sidebar-link" href="#admin-type" title="类型分布">
+        <span class="sidebar-icon">型</span>
+        <span class="sidebar-text">类型分布</span>
+      </a>
+      <a class="sidebar-link" href="#admin-rate" title="完成率">
+        <span class="sidebar-icon">率</span>
+        <span class="sidebar-text">完成率</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<section class="panel dashboard-hero" id="admin-overview">
+  <div class="section-heading">
+    <div>
+      <h1 class="page-title">后台统计</h1>
+      <p class="section-subtitle">查看平台运营概况、信息分布和最近动态。</p>
+    </div>
+    <div class="row row-gap wrap">
+      <a class="btn btn-ghost" href="/admin/">进入 Django Admin</a>
+      <a class="btn" href="{% url 'home' %}">返回首页</a>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-label">信息总量</span>
+      <strong class="kpi-value">{{ stats.total_count }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">今日新增</span>
+      <strong class="kpi-value">{{ stats.today_count }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">已完成</span>
+      <strong class="kpi-value">{{ stats.closed_count }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">待认领</span>
+      <strong class="kpi-value">{{ stats.open_count }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="content-layout admin-layout">
+  <div class="stack">
+    <section class="panel" id="admin-category">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">分类分布</h2>
+          <p class="panel-subtitle">按物品分类统计当前平台信息。</p>
+        </div>
+      </div>
+
+      <div class="distribution-list">
+        {% for row in by_category %}
+          <div class="distribution-item">
+            <div class="distribution-top">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.count }}</strong>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: {{ row.percent }}%;"></div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="muted">暂无分类统计数据。</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel" id="admin-recent">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">最近发布</h2>
+          <p class="panel-subtitle">最新的 6 条失物 / 招领动态。</p>
+        </div>
+      </div>
+
+      <div class="recent-list">
+        {% for item in recent_items %}
+          <a class="recent-item" href="{% url 'item_detail' item.pk %}">
+            <div class="row row-gap wrap">
+              <span class="badge badge-{{ item.type }}">{{ item.get_type_display }}</span>
+              <span class="badge badge-muted">{{ item.get_category_display }}</span>
+            </div>
+            <strong>{{ item.title }}</strong>
+            <span class="recent-meta">{{ item.user.username }} ｜ {{ item.created_at|date:'m-d H:i' }}</span>
+          </a>
+        {% empty %}
+          <div class="muted">暂无最近发布记录。</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <section class="panel panel-accent" id="admin-type">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">类型分布</h2>
+          <p class="panel-subtitle">失物与招领信息占比。</p>
+        </div>
+      </div>
+
+      <div class="distribution-list">
+        {% for row in by_type %}
+          <div class="distribution-item">
+            <div class="distribution-top">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.count }}</strong>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill warm" style="width: {{ row.percent }}%;"></div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="muted">暂无类型统计数据。</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel" id="admin-rate">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">完成率</h2>
+          <p class="panel-subtitle">平台已完成记录占全部记录的比例。</p>
+        </div>
+      </div>
+      <div class="completion-ring" style="--completion: {{ stats.completion_rate }};">
+        <div class="completion-value">{{ stats.completion_rate }}%</div>
+        <div class="completion-label">累计完成率</div>
+      </div>
+    </section>
+  </aside>
+</section>
+{% endblock %}

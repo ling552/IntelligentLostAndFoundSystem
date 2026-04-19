@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}注册 - 智能校园失物招领系统{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#auth-form" title="注册表单">
+        <span class="sidebar-icon">注</span>
+        <span class="sidebar-text">注册表单</span>
+      </a>
+      <a class="sidebar-link" href="#auth-tips" title="安全提示">
+        <span class="sidebar-icon">安</span>
+        <span class="sidebar-text">安全提示</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<div class="page-grid auth-layout">
+  <section class="panel auth-card" id="auth-form">
+    <span class="eyebrow">Create Account</span>
+    <h1 class="page-title">注册账号</h1>
+    <p class="section-subtitle">创建一个账户，用于发布、管理和追踪自己的失物招领信息。</p>
+
+    <form method="post" class="form-layout">
+      {% csrf_token %}
+
+      <div class="form-grid">
+        <label class="field">
+          <span class="label">用户名</span>
+          {{ form.username }}
+          {% if form.username.errors %}<div class="field-errors">{{ form.username.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">邮箱</span>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="field-errors">{{ form.email.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">密码</span>
+          {{ form.password1 }}
+          {% if form.password1.errors %}<div class="field-errors">{{ form.password1.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">确认密码</span>
+          {{ form.password2 }}
+          {% if form.password2.errors %}<div class="field-errors">{{ form.password2.errors }}</div>{% endif %}
+        </label>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert-box">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="row row-gap wrap">
+        <button class="btn" type="submit">注册并登录</button>
+        <a class="btn btn-ghost" href="{% url 'login' %}">已有账号</a>
+      </div>
+    </form>
+  </section>
+
+  <aside class="stack">
+    <section class="panel panel-accent" id="auth-tips">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">账户安全提示</h2>
+          <p class="panel-subtitle">一些简单设置就能让账户更安全。</p>
+        </div>
+      </div>
+      <ul class="quick-list">
+        <li>密码建议包含字母、数字与符号的组合。</li>
+        <li>邮箱便于后续扩展找回密码与通知功能。</li>
+        <li>公开联系方式时请避免泄露完整敏感信息。</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}

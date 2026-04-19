@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.title }} - 信息详情{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#detail-overview" title="信息详情">
+        <span class="sidebar-icon">详</span>
+        <span class="sidebar-text">信息详情</span>
+      </a>
+      <a class="sidebar-link" href="#detail-contact" title="联系提示">
+        <span class="sidebar-icon">联</span>
+        <span class="sidebar-text">联系提示</span>
+      </a>
+      <a class="sidebar-link" href="#detail-matches" title="智能匹配">
+        <span class="sidebar-icon">配</span>
+        <span class="sidebar-text">智能匹配</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<div class="detail-layout">
+  <section class="panel detail-primary" id="detail-overview">
+    <div class="detail-head">
+      <div class="stack-sm">
+        <div class="row row-gap wrap">
+          <span class="badge badge-{{ item.type }}">{{ item.get_type_display }}</span>
+          <span class="badge badge-muted">{{ item.get_category_display }}</span>
+          <span class="badge badge-status-{{ item.status }}">{{ item.get_status_display }}</span>
+        </div>
+        <h1 class="page-title">{{ item.title }}</h1>
+        <p class="section-subtitle">由 {{ item.user.username }} 发布于 {{ item.created_at|date:'Y-m-d H:i' }}</p>
+      </div>
+      <div class="row row-gap wrap">
+        {% if user.is_authenticated %}
+          {% if user.id == item.user_id or user.is_staff %}
+            <a class="btn btn-ghost" href="{% url 'item_edit' item.pk %}">编辑</a>
+            <a class="btn btn-danger" href="{% url 'item_delete' item.pk %}">删除</a>
+            {% if item.status != 'closed' %}
+              <form method="post" action="{% url 'item_close' item.pk %}" class="inline">
+                {% csrf_token %}
+                <button class="btn" type="submit">标记为完成</button>
+              </form>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="detail-showcase">
+      <div class="detail-image-card">
+        {% if item.image %}
+          <img src="{{ item.image.url }}" alt="{{ item.title }}" class="detail-image" />
+        {% else %}
+          <div class="card-media-placeholder large">暂无图片</div>
+        {% endif %}
+      </div>
+
+      <div class="detail-summary">
+        <div class="info-card">
+          <span class="info-label">地点</span>
+          <strong>{{ item.location }}</strong>
+        </div>
+        <div class="info-card">
+          <span class="info-label">时间</span>
+          <strong>{{ item.time|date:'Y-m-d H:i' }}</strong>
+        </div>
+        <div class="info-card">
+          <span class="info-label">联系方式</span>
+          <strong>{{ item.contact }}</strong>
+        </div>
+        <div class="info-card">
+          <span class="info-label">当前状态</span>
+          <strong>{{ item.get_status_display }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <section class="detail-section">
+      <h2 class="panel-title">详细描述</h2>
+      <p class="detail-description">{{ item.description|default:'发布者暂未补充更多描述。'|linebreaksbr }}</p>
+    </section>
+  </section>
+
+  <aside class="stack">
+    <section class="panel" id="detail-contact">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">联系提示</h2>
+          <p class="panel-subtitle">联系前可先描述物品特征，提升核验效率。</p>
+        </div>
+      </div>
+      <div class="summary-list">
+        <div class="summary-item">
+          <span>发布用户</span>
+          <strong>{{ item.user.username }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>联系方式</span>
+          <strong>{{ item.contact }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>物品类型</span>
+          <strong>{{ item.get_type_display }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-accent" id="detail-matches">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">智能匹配推荐</h2>
+          <p class="panel-subtitle">共找到 {{ match_count }} 条可能相关的{% if item.type == 'lost' %}招领{% else %}失物{% endif %}信息。</p>
+        </div>
+      </div>
+
+      <div class="match-list">
+        {% for match in matches %}
+          <a class="match-card" href="{% url 'item_detail' match.item.pk %}">
+            <div class="row row-gap wrap">
+              <span class="badge badge-{{ match.item.type }}">{{ match.item.get_type_display }}</span>
+              <span class="badge badge-muted">{{ match.item.get_category_display }}</span>
+              <span class="score-pill">{{ match.score|floatformat:2 }}</span>
+            </div>
+            <h3 class="match-title">{{ match.item.title }}</h3>
+            <p class="match-meta">地点：{{ match.item.location }} ｜ 时间：{{ match.item.time|date:'m-d H:i' }}</p>
+          </a>
+        {% empty %}
+          <div class="empty-state compact">
+            <div class="empty-title">暂未找到高相关度匹配</div>
+            <p class="muted">可以完善描述、补充图片，或稍后再来查看系统推荐。</p>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  </aside>
+</div>
+{% endblock %}

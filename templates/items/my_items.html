@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}我的发布 - 智能校园失物招领系统{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#my-overview" title="发布概览">
+        <span class="sidebar-icon">概</span>
+        <span class="sidebar-text">发布概览</span>
+      </a>
+      <a class="sidebar-link" href="#my-list" title="信息列表">
+        <span class="sidebar-icon">列</span>
+        <span class="sidebar-text">信息列表</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<section class="panel dashboard-hero" id="my-overview">
+  <div class="section-heading">
+    <div>
+      <h1 class="page-title">我的发布</h1>
+      <p class="section-subtitle">集中管理你已发布的失物与招领信息，及时更新状态。</p>
+    </div>
+    <div class="row row-gap wrap">
+      <a class="btn" href="{% url 'item_create' %}">继续发布</a>
+      <a class="btn btn-ghost" href="{% url 'home' %}">返回首页</a>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-label">累计发布</span>
+      <strong class="kpi-value">{{ stats.total }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">待处理</span>
+      <strong class="kpi-value">{{ stats.open }}</strong>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">已完成</span>
+      <strong class="kpi-value">{{ stats.closed }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="panel" id="my-list">
+  <div class="section-heading">
+    <div>
+      <h2 class="section-title">信息列表</h2>
+      <p class="section-subtitle">点击标题可进入详情页，编辑或关闭相关记录。</p>
+    </div>
+  </div>
+
+  <div class="table">
+    <div class="table-head">
+      <div>标题</div>
+      <div>类型</div>
+      <div>分类</div>
+      <div>状态</div>
+      <div>物品时间</div>
+      <div class="align-right">操作</div>
+    </div>
+    {% for it in items %}
+      <div class="table-row">
+        <div>
+          <a class="table-link" href="{% url 'item_detail' it.pk %}">{{ it.title }}</a>
+          <div class="table-sub">{{ it.location }}</div>
+        </div>
+        <div><span class="badge badge-{{ it.type }}">{{ it.get_type_display }}</span></div>
+        <div><span class="badge badge-muted">{{ it.get_category_display }}</span></div>
+        <div><span class="badge badge-status-{{ it.status }}">{{ it.get_status_display }}</span></div>
+        <div>{{ it.time|date:'Y-m-d H:i' }}</div>
+        <div class="align-right row row-gap wrap">
+          <a class="btn btn-ghost btn-sm" href="{% url 'item_edit' it.pk %}">编辑</a>
+          <a class="btn btn-danger btn-sm" href="{% url 'item_delete' it.pk %}">删除</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <div class="empty-title">你还没有发布任何信息</div>
+        <p class="muted">从一条清晰的失物或招领记录开始，系统会自动帮助你进行匹配推荐。</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

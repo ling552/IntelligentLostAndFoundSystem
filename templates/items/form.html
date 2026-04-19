@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode == 'edit' %}编辑信息{% else %}发布信息{% endif %} - 智能校园失物招领系统{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#form-main" title="填写表单">
+        <span class="sidebar-icon">填</span>
+        <span class="sidebar-text">填写表单</span>
+      </a>
+      <a class="sidebar-link" href="#form-tips" title="填写建议">
+        <span class="sidebar-icon">建</span>
+        <span class="sidebar-text">填写建议</span>
+      </a>
+      <a class="sidebar-link" href="#form-match-guide" title="匹配说明">
+        <span class="sidebar-icon">说</span>
+        <span class="sidebar-text">匹配说明</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<div class="page-grid">
+  <section class="panel" id="form-main">
+    <div class="section-heading">
+      <div>
+        <h1 class="page-title">{% if mode == 'edit' %}编辑信息{% else %}发布一条线索{% endif %}</h1>
+        <p class="section-subtitle">完整、准确的字段会显著提升搜索和智能匹配效果。</p>
+      </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-layout">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert-box">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-grid">
+        <label class="field">
+          <span class="label">信息类型</span>
+          {{ form.type }}
+          {% if form.type.errors %}<div class="field-errors">{{ form.type.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">物品名称</span>
+          {{ form.title }}
+          {% if form.title.errors %}<div class="field-errors">{{ form.title.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">物品分类</span>
+          {{ form.category }}
+          {% if form.category.errors %}<div class="field-errors">{{ form.category.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">发生地点</span>
+          {{ form.location }}
+          {% if form.location.errors %}<div class="field-errors">{{ form.location.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">发生时间</span>
+          {{ form.time }}
+          {% if form.time.errors %}<div class="field-errors">{{ form.time.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field">
+          <span class="label">联系方式</span>
+          {{ form.contact }}
+          {% if form.contact.errors %}<div class="field-errors">{{ form.contact.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field field-full">
+          <span class="label">详细描述</span>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="field-errors">{{ form.description.errors }}</div>{% endif %}
+        </label>
+
+        <label class="field field-full">
+          <span class="label">上传图片</span>
+          {{ form.image }}
+          <span class="hint">支持常见图片格式，建议上传清晰实拍图。</span>
+          {% if form.image.errors %}<div class="field-errors">{{ form.image.errors }}</div>{% endif %}
+        </label>
+      </div>
+
+      <div class="row row-gap wrap">
+        <button class="btn" type="submit">{% if mode == 'edit' %}保存修改{% else %}发布信息{% endif %}</button>
+        <a class="btn btn-ghost" href="{% url 'home' %}">返回首页</a>
+        {% if mode == 'edit' and item %}
+          <a class="btn btn-danger" href="{% url 'item_delete' item.pk %}">删除该信息</a>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+
+  <aside class="stack">
+    <section class="panel panel-accent" id="form-tips">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">填写建议</h2>
+          <p class="panel-subtitle">这几项内容最影响找回效率。</p>
+        </div>
+      </div>
+      <ul class="quick-list">
+        <li>地点尽量写到教学楼、楼层、教室、座位区或具体路段。</li>
+        <li>时间建议精确到小时，便于排序与筛选。</li>
+        <li>描述里可加入颜色、品牌、编号、挂件、划痕等特征。</li>
+        <li>联系方式建议适度脱敏，避免暴露完整隐私信息。</li>
+      </ul>
+    </section>
+
+    <section class="panel" id="form-match-guide">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">智能匹配如何生效</h2>
+          <p class="panel-subtitle">系统会综合标题、描述和地点进行文本相似度推荐。</p>
+        </div>
+      </div>
+      <div class="summary-list">
+        <div class="summary-item">
+          <span>标题清晰</span>
+          <strong>更容易被搜索到</strong>
+        </div>
+        <div class="summary-item">
+          <span>描述完整</span>
+          <strong>匹配精度更高</strong>
+        </div>
+        <div class="summary-item">
+          <span>上传图片</span>
+          <strong>确认效率更快</strong>
+        </div>
+      </div>
+    </section>
+  </aside>
+</div>
+{% endblock %}

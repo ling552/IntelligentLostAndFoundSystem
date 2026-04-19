@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}首页 - 智能校园失物招领系统{% endblock %}
+{% block sidebar_quick_links %}
+  <div class="sidebar-section sidebar-page-section">
+    <div class="sidebar-section-title">本页跳转</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#overview" title="顶部概览">
+        <span class="sidebar-icon">概</span>
+        <span class="sidebar-text">顶部概览</span>
+      </a>
+      <a class="sidebar-link" href="#filters" title="快速筛选">
+        <span class="sidebar-icon">筛</span>
+        <span class="sidebar-text">快速筛选</span>
+      </a>
+      <a class="sidebar-link" href="#latest-items" title="最新信息">
+        <span class="sidebar-icon">新</span>
+        <span class="sidebar-text">最新信息</span>
+      </a>
+      <a class="sidebar-link" href="#popular-categories" title="热门分类">
+        <span class="sidebar-icon">热</span>
+        <span class="sidebar-text">热门分类</span>
+      </a>
+    </nav>
+  </div>
+{% endblock %}
+{% block content %}
+<section class="hero-shell" id="overview">
+  <div class="panel panel-hero hero-copy">
+    <span class="eyebrow">Campus Lost &amp; Found</span>
+    <h1 class="hero-title">让每一条线索都更快找到归处</h1>
+    <p class="hero-sub">
+      集中发布失物与招领信息，结合关键词智能匹配，让校园里的遗失与认领流程更清晰、更高效。
+    </p>
+    <div class="hero-actions">
+      <a class="btn" href="{% url 'item_create' %}">立即发布信息</a>
+      {% if user.is_authenticated %}
+        <a class="btn btn-ghost" href="{% url 'my_items' %}">管理我的发布</a>
+      {% else %}
+        <a class="btn btn-ghost" href="{% url 'login' %}">登录后发布</a>
+      {% endif %}
+    </div>
+    <div class="hero-metrics">
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ stats.total }}</span>
+        <span class="hero-stat-label">累计信息</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ stats.open }}</span>
+        <span class="hero-stat-label">待认领</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">{{ stats.today }}</span>
+        <span class="hero-stat-label">今日新增</span>
+      </div>
+    </div>
+  </div>
+
+  <aside class="panel hero-side">
+    <div class="panel-title-row">
+      <div>
+        <h2 class="panel-title">实时概览</h2>
+        <p class="panel-subtitle">平台当前运行状态与内容分布。</p>
+      </div>
+      <span class="badge badge-muted">实时</span>
+    </div>
+    <div class="summary-list">
+      <div class="summary-item">
+        <span>筛选结果</span>
+        <strong>{{ stats.filtered }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>失物信息</span>
+        <strong>{{ stats.lost }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>招领信息</span>
+        <strong>{{ stats.found }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>已完成</span>
+        <strong>{{ stats.closed }}</strong>
+      </div>
+    </div>
+    <div class="hero-note">
+      <strong>发布建议</strong>
+      <p>标题写清楚物品名称，地点尽量具体到楼层或教室，描述里补充颜色、品牌和明显特征，匹配效果会更好。</p>
+    </div>
+  </aside>
+</section>
+
+<section class="panel search-panel" id="filters">
+  <div class="panel-title-row">
+    <div>
+      <h2 class="panel-title">快速筛选</h2>
+      <p class="panel-subtitle">按关键词、类型、分类与时间排序快速定位信息。</p>
+    </div>
+  </div>
+
+  <form method="get" class="search-grid">
+    <label class="field field-wide">
+      <span class="label">关键词</span>
+      <input class="input" type="text" name="q" value="{{ q }}" placeholder="搜索物品名称、地点或描述" />
+    </label>
+    <label class="field">
+      <span class="label">类型</span>
+      <select class="select" name="type">
+        <option value="">全部类型</option>
+        <option value="lost" {% if type == 'lost' %}selected{% endif %}>失物</option>
+        <option value="found" {% if type == 'found' %}selected{% endif %}>招领</option>
+      </select>
+    </label>
+    <label class="field">
+      <span class="label">分类</span>
+      <select class="select" name="category">
+        <option value="">全部分类</option>
+        {% for value, label in categories %}
+          <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span class="label">排序</span>
+      <select class="select" name="sort">
+        <option value="new" {% if sort == 'new' %}selected{% endif %}>按发布时间</option>
+        <option value="time" {% if sort == 'time' %}selected{% endif %}>按物品时间</option>
+      </select>
+    </label>
+    <div class="field search-actions">
+      <span class="label">执行</span>
+      <div class="row row-gap">
+        <button class="btn" type="submit">应用筛选</button>
+        <a class="btn btn-ghost" href="{% url 'home' %}">重置</a>
+      </div>
+    </div>
+  </form>
+</section>
+
+<section class="content-layout">
+  <div>
+    <div class="section-heading" id="latest-items">
+      <div>
+        <h2 class="section-title">最新信息</h2>
+        <p class="section-subtitle">当前展示 {{ stats.filtered }} 条符合条件的记录，最多显示 30 条。</p>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      {% for it in items %}
+        <a class="item-card" href="{% url 'item_detail' it.pk %}">
+          <div class="card-media">
+            {% if it.image %}
+              <img src="{{ it.image.url }}" alt="{{ it.title }}" />
+            {% else %}
+              <div class="card-media-placeholder">{{ it.get_type_display }}</div>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="badge badge-{{ it.type }}">{{ it.get_type_display }}</span>
+              <span class="badge badge-muted">{{ it.get_category_display }}</span>
+              <span class="badge badge-status-{{ it.status }}">{{ it.get_status_display }}</span>
+            </div>
+            <h3 class="card-title">{{ it.title }}</h3>
+            <div class="meta-list">
+              <span>地点：{{ it.location }}</span>
+              <span>时间：{{ it.time|date:'Y-m-d H:i' }}</span>
+            </div>
+            <p class="card-desc">{{ it.description|default:'暂无补充描述。'|truncatechars:96 }}</p>
+          </div>
+          <div class="item-card-footer">
+            <span>发布者 {{ it.user.username }}</span>
+            <span>{{ it.created_at|date:'m-d H:i' }}</span>
+          </div>
+        </a>
+      {% empty %}
+        <div class="empty-state">
+          <div class="empty-title">当前没有符合条件的信息</div>
+          <p class="muted">你可以调整筛选条件，或者直接发布新的失物 / 招领信息。</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <aside class="stack">
+    <section class="panel" id="popular-categories">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">热门分类</h2>
+          <p class="panel-subtitle">看看平台中最常见的物品类型。</p>
+        </div>
+      </div>
+      <div class="summary-list">
+        {% for row in top_categories %}
+          <div class="summary-item">
+            <span>{{ row.label }}</span>
+            <strong>{{ row.count }}</strong>
+          </div>
+        {% empty %}
+          <div class="muted">暂无分类统计。</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel panel-accent">
+      <div class="panel-title-row">
+        <div>
+          <h2 class="panel-title">使用建议</h2>
+          <p class="panel-subtitle">提升找回效率的小技巧。</p>
+        </div>
+      </div>
+      <ul class="quick-list">
+        <li>标题中优先写物品名称，不要只写“求助”或“急寻”。</li>
+        <li>地点信息尽量具体到教学楼、楼层、教室或座位区域。</li>
+        <li>联系方式建议脱敏，例如仅展示微信后四位或备用邮箱。</li>
+        <li>有图片时请上传清晰照片，便于快速确认物品归属。</li>
+      </ul>
+    </section>
+  </aside>
+</section>
+{% endblock %}

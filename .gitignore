@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.so
+
+# Django
+*.sqlite3
+media/
+staticfiles/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+.env
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local docs not required for publishing
+智能校园失物招领系统开发文档.md
