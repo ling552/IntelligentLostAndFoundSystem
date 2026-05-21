@@ -1,0 +1,75 @@
+name: Docker Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without leading v"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+env:
+  IMAGE_NAME: intelligent-lostfound-system
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "tag=v${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --label "org.opencontainers.image.title=IntelligentLostAndFoundSystem" \
+            --label "org.opencontainers.image.version=${{ steps.version.outputs.version }}" \
+            -t "${IMAGE_NAME}:${{ steps.version.outputs.version }}" \
+            -t "${IMAGE_NAME}:latest" \
+            .
+
+      - name: Export Docker image archive
+        run: |
+          docker save "${IMAGE_NAME}:${{ steps.version.outputs.version }}" | gzip > "${IMAGE_NAME}-${{ steps.version.outputs.version }}.tar.gz"
+          sha256sum "${IMAGE_NAME}-${{ steps.version.outputs.version }}.tar.gz" > "${IMAGE_NAME}-${{ steps.version.outputs.version }}.tar.gz.sha256"
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          NOTES="Docker image archive for IntelligentLostAndFoundSystem ${VERSION}.
+
+          Load with:
+          docker load -i ${IMAGE_NAME}-${VERSION}.tar.gz
+
+          Run with:
+          docker run --rm -p 8000:8000 ${IMAGE_NAME}:${VERSION}"
+
+          if gh release view "${TAG_NAME}" >/dev/null 2>&1; then
+            gh release upload "${TAG_NAME}" "${IMAGE_NAME}-${VERSION}.tar.gz" "${IMAGE_NAME}-${VERSION}.tar.gz.sha256" --clobber
+          else
+            gh release create "${TAG_NAME}" "${IMAGE_NAME}-${VERSION}.tar.gz" "${IMAGE_NAME}-${VERSION}.tar.gz.sha256" \
+              --title "${TAG_NAME}" \
+              --notes "${NOTES}" \
+              --target "${GITHUB_SHA}"
+          fi

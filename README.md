@@ -1,193 +1,140 @@
 # 智能校园失物招领系统
 
-基于 `Django + SQLite` 的校园失物招领平台，支持失物 / 招领信息发布、图片上传、关键词搜索、分类筛选，以及基于文本相似度的智能匹配推荐。
+基于 `Django + SQLite` 的校园失物招领平台，支持失物/招领信息发布、图片上传、关键词搜索、分类筛选、个人发布管理、管理员统计面板，以及基于文本相似度的匹配推荐。
 
-## 项目亮点
+## 功能特性
 
-- 全站统一视觉风格，覆盖首页、详情页、表单页、用户中心和后台统计页
-- 支持失物与招领双类型信息发布
-- 支持关键词搜索、分类筛选、类型筛选和排序
-- 支持图片上传与本地 `media/` 存储
-- 支持个人发布记录管理、状态关闭、管理员统计面板
+- 失物与招领双类型信息发布
+- 物品分类、关键词搜索、类型筛选和时间排序
+- 图片上传，开发环境默认保存到本地 `media/`
+- 登录、注册、个人资料与个人发布记录管理
+- 管理员统计面板，展示发布量、完成率、分类分布等数据
+- 详情页自动推荐相似的反向类型条目
 
 ## 技术栈
 
-- Python 3.10
+- Python 3.10+，推荐 Python 3.10/3.11/3.12
 - Django 4.2
 - Pillow 10
 - SQLite
-- Django Templates + 原生 HTML / CSS
+- Django Templates + 原生 HTML/CSS/JavaScript
+- Docker + Gunicorn
+- WhiteNoise 静态文件服务
 
 ## 目录结构
 
 ```text
 IntelligentLostAndFoundSystem/
-├─ items/                    # 失物 / 招领业务模块
-├─ lostfound_system/         # Django 项目配置
-├─ media/                    # 上传图片目录
-├─ static/                   # 静态资源
-├─ templates/                # 页面模板
-├─ users/                    # 用户登录 / 注册 / 资料设置
-├─ manage.py
-├─ requirements.txt
-├─ environment.yml
-└─ README.md
+├── items/                 # 失物/招领业务模块
+├── lostfound_system/      # Django 项目配置
+├── scripts/               # 环境检查脚本
+├── static/                # 静态资源
+├── templates/             # 页面模板
+├── users/                 # 登录、注册、资料模块
+├── .github/workflows/     # GitHub Actions 工作流
+├── Dockerfile
+├── docker-entrypoint.sh
+├── environment.yml
+├── manage.py
+├── requirements.txt
+└── README.md
 ```
 
-## 使用 Conda 启动
+## 本地启动
 
-推荐直接双击或执行项目根目录下的脚本：
+### 使用普通 Python
 
-```powershell
-.\start_conda.bat
-```
-
-脚本会自动：
-
-- 检查并创建 `intelligent-lostfound` conda 环境
-- 根据 `environment.yml` 同步依赖
-- 自动执行 `python manage.py migrate`
-- 启动 Django 开发服务器
-
-### 1. 创建环境
-
-```powershell
-conda env create -f environment.yml
-```
-
-如果你想手动创建，也可以使用：
-
-```powershell
-conda create -n intelligent-lostfound python=3.10 -y
-conda activate intelligent-lostfound
-python -m pip install -r requirements.txt
-```
-
-### 2. 激活环境
-
-```powershell
-conda activate intelligent-lostfound
-```
-
-### 3. 初始化数据库
-
-```powershell
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### 4. 创建管理员账号
-
-```powershell
-python manage.py createsuperuser
-```
-
-### 5. 启动项目
-
-```powershell
-python manage.py runserver 127.0.0.1:8000
-```
-
-启动后访问：
-
-- 首页：[http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-- 我的发布：[http://127.0.0.1:8000/me/items/](http://127.0.0.1:8000/me/items/)
-- 后台统计：[http://127.0.0.1:8000/dashboard/](http://127.0.0.1:8000/dashboard/)
-- Django Admin：[http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
-
-## 不使用 Conda，直接用 Python 启动
-
-如果你的电脑已经安装了可用的 Python 3.10，也可以不使用 Conda，直接启动项目。
-
-推荐直接双击或执行项目根目录下的脚本：
+Windows 下可以直接运行：
 
 ```powershell
 .\start_python.bat
 ```
 
-脚本会自动：
-
-- 检查并创建本地 `.venv` 虚拟环境
-- 安装 `requirements.txt` 中的依赖
-- 自动执行 `python manage.py migrate`
-- 启动 Django 开发服务器
-
-说明：
-
-- `start_python.bat` 会优先尝试 `py -3.10`
-- 如果系统里只有不兼容的 Python 版本，脚本会直接给出提示并停止
-
-### 方式一：直接使用系统 Python
+也可以手动执行：
 
 ```powershell
+python -m venv .venv
+.\.venv\Scripts\activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver 127.0.0.1:8000
 ```
 
-### 方式二：使用 Windows 的 `py` 启动器
+### 使用 Conda
 
 ```powershell
-py -3.10 -m pip install --upgrade pip
-py -3.10 -m pip install -r requirements.txt
-py -3.10 manage.py migrate
-py -3.10 manage.py runserver 127.0.0.1:8000
-```
-
-如果你希望隔离依赖但又不想使用 Conda，也可以额外创建一个原生虚拟环境：
-
-```powershell
-python -m venv .venv
-.venv\Scripts\activate
-python -m pip install -r requirements.txt
+conda env create -f environment.yml
+conda activate intelligent-lostfound
+python manage.py migrate
 python manage.py runserver 127.0.0.1:8000
 ```
+
+启动后访问：
+
+- 首页：http://127.0.0.1:8000/
+- 我的发布：http://127.0.0.1:8000/me/items/
+- 后台统计：http://127.0.0.1:8000/dashboard/
+- Django Admin：http://127.0.0.1:8000/admin/
+
+## Docker 打包与运行
+
+构建 1.0.0 镜像：
+
+```bash
+docker build -t intelligent-lostfound-system:1.0.0 .
+```
+
+运行容器：
+
+```bash
+docker run --rm -p 8000:8000 \
+  -e DJANGO_SECRET_KEY="change-me" \
+  -e DJANGO_ALLOWED_HOSTS="localhost,127.0.0.1" \
+  intelligent-lostfound-system:1.0.0
+```
+
+容器启动时会自动执行数据库迁移，并通过 Gunicorn 监听 `0.0.0.0:8000`。
+
+## GitHub Release 打包
+
+仓库已包含 `.github/workflows/docker-release.yml`。推送版本标签后会自动构建 Docker 镜像，并把镜像归档文件上传到 GitHub Release。
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+工作流产物：
+
+- `intelligent-lostfound-system-1.0.0.tar.gz`
+- `intelligent-lostfound-system-1.0.0.tar.gz.sha256`
+
+下载后可导入镜像：
+
+```bash
+docker load -i intelligent-lostfound-system-1.0.0.tar.gz
+docker run --rm -p 8000:8000 intelligent-lostfound-system:1.0.0
+```
+
+也可以在 GitHub Actions 页面手动运行 `Docker Release` workflow，并输入版本号。
 
 ## 常用管理命令
 
 ```powershell
+python manage.py check
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py collectstatic
 ```
 
-## 常见问题
+## 环境变量
 
-### 1. `ModuleNotFoundError: No module named 'django'`
-
-说明依赖尚未安装，请先执行：
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-或确认你已经正确激活 Conda / 虚拟环境。
-
-### 2. 图片上传后无法显示
-
-开发模式下，项目会通过 `MEDIA_URL` 自动映射本地 `media/` 目录。请确认：
-
-- 项目是通过 `python manage.py runserver` 启动的
-- `DEBUG = True`
-- 上传后 `media/` 目录中确实已生成文件
-
-### 3. 端口被占用
-
-可以更换端口运行：
-
-```powershell
-python manage.py runserver 127.0.0.1:8001
-```
-
-## 开发说明
-
-- 主要业务逻辑位于 [items/views.py](D:/HTML/IntelligentLostAndFoundSystem/items/views.py)
-- 匹配服务位于 [items/services.py](D:/HTML/IntelligentLostAndFoundSystem/items/services.py)
-- 全局样式位于 [static/css/app.css](D:/HTML/IntelligentLostAndFoundSystem/static/css/app.css)
-- 全站基础布局位于 [templates/base.html](D:/HTML/IntelligentLostAndFoundSystem/templates/base.html)
+- `DJANGO_SECRET_KEY`：Django 密钥，生产环境必须设置
+- `DJANGO_DEBUG`：是否开启调试模式，默认本地为 `True`，Docker 中默认 `False`
+- `DJANGO_ALLOWED_HOSTS`：允许访问的主机名，多个值用英文逗号分隔
 
 ## License
 
-项目仅用于学习、课程设计和演示，可按需二次修改。
+本项目用于学习、课程设计和演示，可按需二次修改。
