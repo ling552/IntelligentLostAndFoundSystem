@@ -3,8 +3,11 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DJANGO_DEBUG=False \
-    DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 \
-    DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+    DJANGO_ALLOWED_HOSTS=* \
+    DJANGO_DATA_DIR=/app/data \
+    DJANGO_MEDIA_ROOT=/app/media
+
+VOLUME ["/app/data", "/app/media"]
 
 WORKDIR /app
 
@@ -18,6 +21,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY . .
 RUN chmod +x /app/docker-entrypoint.sh \
+    && mkdir -p /app/data /app/media \
     && python manage.py collectstatic --noinput
 
 EXPOSE 8000

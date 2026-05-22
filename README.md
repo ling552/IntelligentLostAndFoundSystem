@@ -79,45 +79,90 @@ python manage.py runserver 127.0.0.1:8000
 
 ## Docker 打包与运行
 
-构建 1.0.1 镜像：
+### 构建镜像
 
 ```bash
-docker build -t intelligent-lostfound-system:1.0.1 .
+docker build -t intelligent-lostfound-system:1.0.2 .
 ```
 
-运行容器（默认监听 `localhost`、`127.0.0.1`）：
+### 本机快速试运行
+
+容器内已声明数据目录卷 `/app/data`（SQLite 数据库）和 `/app/media`（用户上传图片）。最简单的本机访问方式：
 
 ```bash
-docker run --rm -p 8000:8000 \
-  -e DJANGO_SECRET_KEY="change-me" \
-  -e DJANGO_ALLOWED_HOSTS="localhost,127.0.0.1" \
-  -e DJANGO_CSRF_TRUSTED_ORIGINS="http://localhost:8000,http://127.0.0.1:8000" \
-  intelligent-lostfound-system:1.0.1
+docker run -d --name lostfound -p 8000:8000 \
+  -e DJANGO_SECRET_KEY="please-change-me" \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/media:/app/media" \
+  intelligent-lostfound-system:1.0.2
 ```
 
-> **提示**：若需要通过其他主机名/IP（例如 `http://192.168.x.x:8000` 或自定义域名）访问，需要同时把对应地址追加到 `DJANGO_ALLOWED_HOSTS` 和 `DJANGO_CSRF_TRUSTED_ORIGINS`（后者必须带 `http://` 或 `https://` 协议前缀），否则提交表单会出现 `CSRF验证失败. 请求被中断.` 的 403 错误。
+Windows PowerShell 用 `${PWD}` 替换 `$(pwd)`，cmd 用 `%cd%`。
 
-容器启动时会自动执行数据库迁移，并通过 Gunicorn 监听 `0.0.0.0:8000`。
+浏览器打开 http://127.0.0.1:8000/ 即可访问。容器删除后，`./data/db.sqlite3` 与 `./media/` 中的数据仍保留在本机目录。
+
+### 通过域名或公网 IP 访问
+
+必须把外部访问地址同时加入 `DJANGO_ALLOWED_HOSTS` 和 `DJANGO_CSRF_TRUSTED_ORIGINS`（后者要带协议前缀），否则会出现 `Bad Request (400)` 或 `CSRF验证失败. 请求被中断.` (403)。
+
+HTTPS 域名（推荐，建议在前面挂 Nginx/Caddy 反向代理终止 TLS）：
+
+```bash
+docker run -d --name lostfound -p 8000:8000 \
+  -e DJANGO_SECRET_KEY="please-change-me" \
+  -e DJANGO_ALLOWED_HOSTS="lostfound.example.com" \
+  -e DJANGO_CSRF_TRUSTED_ORIGINS="https://lostfound.example.com" \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/media:/app/media" \
+  intelligent-lostfound-system:1.0.2
+```
+
+HTTP 公网 IP（直接对外暴露 8000 端口）：
+
+```bash
+docker run -d --name lostfound -p 8000:8000 \
+  -e DJANGO_SECRET_KEY="please-change-me" \
+  -e DJANGO_ALLOWED_HOSTS="203.0.113.10,localhost,127.0.0.1" \
+  -e DJANGO_CSRF_TRUSTED_ORIGINS="http://203.0.113.10:8000,http://localhost:8000,http://127.0.0.1:8000" \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/media:/app/media" \
+  intelligent-lostfound-system:1.0.2
+```
+
+多个域名或 IP 用英文逗号分隔。把 `203.0.113.10` 换成实际公网 IP，`lostfound.example.com` 换成实际域名。
+
+容器启动时会自动 `migrate`，并通过 Gunicorn 监听 `0.0.0.0:8000`。
+
+### 创建管理员账号
+
+容器运行后单独执行：
+
+```bash
+docker exec -it lostfound python manage.py createsuperuser
+```
 
 ## GitHub Release 打包
 
 仓库已包含 `.github/workflows/docker-release.yml`。推送版本标签后会自动构建 Docker 镜像，并把镜像归档文件上传到 GitHub Release。
 
 ```bash
-git tag v1.0.1
-git push origin v1.0.1
+git tag v1.0.2
+git push origin v1.0.2
 ```
 
 工作流产物：
 
-- `intelligent-lostfound-system-1.0.1.tar.gz`
-- `intelligent-lostfound-system-1.0.1.tar.gz.sha256`
+- `intelligent-lostfound-system-1.0.2.tar.gz`
+- `intelligent-lostfound-system-1.0.2.tar.gz.sha256`
 
 下载后可导入镜像：
 
 ```bash
-docker load -i intelligent-lostfound-system-1.0.1.tar.gz
-docker run --rm -p 8000:8000 intelligent-lostfound-system:1.0.1
+docker load -i intelligent-lostfound-system-1.0.2.tar.gz
+docker run -d --name lostfound -p 8000:8000 \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/media:/app/media" \
+  intelligent-lostfound-system:1.0.2
 ```
 
 也可以在 GitHub Actions 页面手动运行 `Docker Release` workflow，并输入版本号。
@@ -136,8 +181,10 @@ python manage.py collectstatic
 
 - `DJANGO_SECRET_KEY`：Django 密钥，生产环境必须设置
 - `DJANGO_DEBUG`：是否开启调试模式，默认本地为 `True`，Docker 中默认 `False`
-- `DJANGO_ALLOWED_HOSTS`：允许访问的主机名，多个值用英文逗号分隔
-- `DJANGO_CSRF_TRUSTED_ORIGINS`：受信任的 CSRF 来源，多个值用英文逗号分隔（必须带 `http://` / `https://` 协议前缀）；未设置时会从 `DJANGO_ALLOWED_HOSTS` 自动派生
+- `DJANGO_ALLOWED_HOSTS`：允许访问的主机名/IP，多个值用英文逗号分隔；Docker 镜像默认为 `*`（接受任意 Host 头）
+- `DJANGO_CSRF_TRUSTED_ORIGINS`：受信任的 CSRF 来源，多个值用英文逗号分隔（必须带 `http://` / `https://` 协议前缀）；未设置时会从 `DJANGO_ALLOWED_HOSTS` 自动派生，使用域名/公网 IP 访问时**必须显式配置**
+- `DJANGO_DATA_DIR`：SQLite 数据库所在目录，Docker 镜像默认 `/app/data`，建议挂载本机目录持久化
+- `DJANGO_MEDIA_ROOT`：用户上传图片目录，Docker 镜像默认 `/app/media`，建议挂载本机目录持久化
 
 ## License
 
