@@ -79,20 +79,23 @@ python manage.py runserver 127.0.0.1:8000
 
 ## Docker 打包与运行
 
-构建 1.0.0 镜像：
+构建 1.0.1 镜像：
 
 ```bash
-docker build -t intelligent-lostfound-system:1.0.0 .
+docker build -t intelligent-lostfound-system:1.0.1 .
 ```
 
-运行容器：
+运行容器（默认监听 `localhost`、`127.0.0.1`）：
 
 ```bash
 docker run --rm -p 8000:8000 \
   -e DJANGO_SECRET_KEY="change-me" \
   -e DJANGO_ALLOWED_HOSTS="localhost,127.0.0.1" \
-  intelligent-lostfound-system:1.0.0
+  -e DJANGO_CSRF_TRUSTED_ORIGINS="http://localhost:8000,http://127.0.0.1:8000" \
+  intelligent-lostfound-system:1.0.1
 ```
+
+> **提示**：若需要通过其他主机名/IP（例如 `http://192.168.x.x:8000` 或自定义域名）访问，需要同时把对应地址追加到 `DJANGO_ALLOWED_HOSTS` 和 `DJANGO_CSRF_TRUSTED_ORIGINS`（后者必须带 `http://` 或 `https://` 协议前缀），否则提交表单会出现 `CSRF验证失败. 请求被中断.` 的 403 错误。
 
 容器启动时会自动执行数据库迁移，并通过 Gunicorn 监听 `0.0.0.0:8000`。
 
@@ -101,20 +104,20 @@ docker run --rm -p 8000:8000 \
 仓库已包含 `.github/workflows/docker-release.yml`。推送版本标签后会自动构建 Docker 镜像，并把镜像归档文件上传到 GitHub Release。
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.1
+git push origin v1.0.1
 ```
 
 工作流产物：
 
-- `intelligent-lostfound-system-1.0.0.tar.gz`
-- `intelligent-lostfound-system-1.0.0.tar.gz.sha256`
+- `intelligent-lostfound-system-1.0.1.tar.gz`
+- `intelligent-lostfound-system-1.0.1.tar.gz.sha256`
 
 下载后可导入镜像：
 
 ```bash
-docker load -i intelligent-lostfound-system-1.0.0.tar.gz
-docker run --rm -p 8000:8000 intelligent-lostfound-system:1.0.0
+docker load -i intelligent-lostfound-system-1.0.1.tar.gz
+docker run --rm -p 8000:8000 intelligent-lostfound-system:1.0.1
 ```
 
 也可以在 GitHub Actions 页面手动运行 `Docker Release` workflow，并输入版本号。
@@ -134,6 +137,7 @@ python manage.py collectstatic
 - `DJANGO_SECRET_KEY`：Django 密钥，生产环境必须设置
 - `DJANGO_DEBUG`：是否开启调试模式，默认本地为 `True`，Docker 中默认 `False`
 - `DJANGO_ALLOWED_HOSTS`：允许访问的主机名，多个值用英文逗号分隔
+- `DJANGO_CSRF_TRUSTED_ORIGINS`：受信任的 CSRF 来源，多个值用英文逗号分隔（必须带 `http://` / `https://` 协议前缀）；未设置时会从 `DJANGO_ALLOWED_HOSTS` 自动派生
 
 ## License
 
